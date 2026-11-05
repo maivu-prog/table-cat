@@ -8,7 +8,7 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;overflow:hidden;
-    background:linear-gradient(180deg,#8a5a3c 0%,#6e4029 45%,#4a2a1a 100%);
+    background:linear-gradient(180deg,#c08855 0%,#a3663c 48%,#7b4526 100%);
     font-family:'Baloo 2','Trebuchet MS','Segoe UI',system-ui,sans-serif;
     -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
   #cv{position:fixed;left:0;top:0;width:100%;height:100%;display:block}
@@ -394,7 +394,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = T.PCFSoftShadowMap;
 var scene = new T.Scene();
-scene.fog = new T.Fog(0x5a3422, 30, 70);
+scene.fog = new T.Fog(0x8a5733, 30, 70);
 var camera = new T.PerspectiveCamera(48, 1, 0.1, 200);
 
 scene.add(new T.HemisphereLight(0xffeccb, 0x8a5c38, 0.42));
@@ -675,6 +675,7 @@ function pop(x, z, txt, col){
 
 /* ---------- camera fit (CAMERA-3D.md: place, project, re-measure - never a formula) ---------- */
 var camDist = 28, camLookZ = 0, camLookX = 0, camYaw = 0, camElev = 1.1, camBase = new T.Vector3();
+var camFillH = 0, camFillV = 0;   /* how much of each screen axis the deck covers - read by fillcheck */
 var _fp = new T.Vector3();
 function vpW(){ return cv.clientWidth || innerWidth; }
 function vpH(){ return cv.clientHeight || innerHeight; }
@@ -688,38 +689,66 @@ function fit(){
      by height and left two thirds of the screen as empty sky - the "panel trong qua nua" the UI
      rules forbid. Everything else is world space, so nothing in the game has to know. */
   camYaw = port ? 0 : Math.PI / 2;
-  var el = (port ? 60 : 52) * Math.PI / 180;
-  camElev = el;
-  /* pad the near end by the height of the scrap heap, or the crates render off the bottom edge */
-  var mx = LANE_HW + 0.7, z0 = Z_EDGE - 0.6, z1 = Z_PLAT + 1.8;
+  /* Pad the near end by the height of the scrap heap, or the crates render off the bottom edge.
+     05/11 toi: the pads were sized for the deck alone, so once the elevation search tightened the
+     frame the CAT and the left-hand dishes got clipped by the edge - and those dishes are the
+     things you pick up, not scenery. The pads now cover the cat (x = LANE_HW - 0.5 plus its body)
+     and the plate row sitting a little past Z_PLAT. */
+  var mx = LANE_HW + 1.5, z0 = Z_EDGE - 0.6, z1 = Z_PLAT + 2.8;
   /* The camera is ANCHORED on the deck centre and only the LOOK target slides. Anchoring the
      position on the look target too (first version) translated the camera with every correction,
      so the projection barely changed, the loop ran away and the deck ended up off screen. */
   var cz = (z0 + z1) / 2;
   var dirx = Math.sin(camYaw), dirz = Math.cos(camYaw);
-  var lookOff = 0;
   camera.far = 400;
-  camDist = 34;
   var tanH = Math.tan(camera.fov * Math.PI / 360);
-  for (var it = 0; it < 40; it++) {
-    camera.position.set(dirx * Math.cos(el) * camDist, Math.sin(el) * camDist,
-                        cz + dirz * Math.cos(el) * camDist);
-    camera.lookAt(-dirx * lookOff, 0, cz - dirz * lookOff);
-    camera.updateProjectionMatrix();
-    camera.updateMatrixWorld();
-    var x0 = 9, x1 = -9, y0 = 9, y1 = -9;
-    for (var c = 0; c < 4; c++) {
-      _fp.set(c < 2 ? -mx : mx, 0.5, (c % 2) ? z0 : z1).project(camera);
-      if (_fp.x < x0) x0 = _fp.x; if (_fp.x > x1) x1 = _fp.x;
-      if (_fp.y < y0) y0 = _fp.y; if (_fp.y > y1) y1 = _fp.y;
+
+  /* Place, project, re-measure - never a formula (CAMERA-3D.md). For a given ELEVATION this walks
+     the distance and the look target until the deck fills 92% of its limiting axis, then reports
+     how much of EACH axis the deck actually covers. */
+  function solve(el) {
+    var lookOff = 0, d = 34, x0, x1, y0, y1;
+    for (var it = 0; it < 40; it++) {
+      camera.position.set(dirx * Math.cos(el) * d, Math.sin(el) * d, cz + dirz * Math.cos(el) * d);
+      camera.lookAt(-dirx * lookOff, 0, cz - dirz * lookOff);
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld();
+      x0 = 9; x1 = -9; y0 = 9; y1 = -9;
+      for (var c = 0; c < 4; c++) {
+        _fp.set(c < 2 ? -mx : mx, 0.5, (c % 2) ? z0 : z1).project(camera);
+        if (_fp.x < x0) x0 = _fp.x; if (_fp.x > x1) x1 = _fp.x;
+        if (_fp.y < y0) y0 = _fp.y; if (_fp.y > y1) y1 = _fp.y;
+      }
+      var cy = (y0 + y1) * 0.5;
+      var m = Math.max((x1 - x0) * 0.5, (y1 - y0) * 0.5);
+      var done = Math.abs(m - 0.92) < 0.0015 && Math.abs(cy) < 0.0015;
+      lookOff += cy * d * tanH * 0.8;
+      d *= m / 0.92;
+      if (done) break;
     }
-    var cy = (y0 + y1) * 0.5;
-    var m = Math.max((x1 - x0) * 0.5, (y1 - y0) * 0.5);
-    var done = Math.abs(m - 0.92) < 0.0015 && Math.abs(cy) < 0.0015;
-    lookOff += cy * camDist * tanH * 0.8;
-    camDist *= m / 0.92;
-    if (done) break;
+    /* NDC spans -1..1, so half a span is the fraction of the screen the deck covers. */
+    return { el: el, d: d, lookOff: lookOff, hf: (x1 - x0) * 0.5, vf: (y1 - y0) * 0.5 };
   }
+
+  /* Why elevation is SEARCHED and not a constant: the deck is a 11 x 22.5 strip, and how tall it
+     lands on screen is (its width) x sin(elevation). At a fixed 52 deg a 16:9 screen got a deck
+     that filled 81% of the width but only 47% of the HEIGHT - the empty table chi complained about
+     on 05/11. The old framecheck never caught it because it only ever measured width. So: try the
+     whole usable range of elevations, project the deck at each, and keep the one where the WORSE
+     of the two axes is best covered. Flatter than 44 deg loses the table read, steeper than 74 deg
+     goes top-down and the cat stops having a silhouette. */
+  var best = null;
+  for (var ang = 44; ang <= 74; ang += 1.5) {
+    var r = solve(ang * Math.PI / 180);
+    var score = Math.min(r.hf, r.vf);
+    if (!best || score > best.score) { best = r; best.score = score; }
+  }
+  var el = best.el, lookOff = best.lookOff;
+  camElev = el;
+  camDist = best.d;
+  camFillH = best.hf; camFillV = best.vf;
+  camera.position.set(dirx * Math.cos(el) * camDist, Math.sin(el) * camDist,
+                      cz + dirz * Math.cos(el) * camDist);
   camLookX = -dirx * lookOff; camLookZ = cz - dirz * lookOff;
   camBase.set(dirx * Math.cos(el) * camDist, Math.sin(el) * camDist, cz + dirz * Math.cos(el) * camDist);
   camera.position.copy(camBase);
