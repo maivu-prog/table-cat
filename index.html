@@ -62,6 +62,71 @@
   #over .stats b{color:#8c4a12;font-size:26px;letter-spacing:0}
   #over .kept{display:flex;align-items:center;gap:8px;font-size:30px;font-weight:800;color:#c98a00}
   #again:active{transform:translateY(5px);box-shadow:0 2px 0 #0a7268}
+  #over .loot{margin:8px 0 2px;padding:8px 18px;border-radius:14px;border:2px solid #c9a06a;
+    font-size:19px;font-weight:800;color:#6d3a0c;letter-spacing:.04em}
+  /* ---- THE TABLE (armory): three blocks like KDR - dishes left, START centre, record right ---- */
+  #ui.arm #top,#ui.arm #gold,#ui.arm #hint,#ui.arm #combo,#ui.arm #banner{display:none}
+  #armory{position:absolute;inset:0;display:none;pointer-events:auto;
+    background:linear-gradient(180deg,rgba(60,28,8,.82),rgba(36,16,4,.9))}
+  #armory.on{display:block}
+  #arm{position:absolute;inset:0;display:grid;gap:14px;align-items:stretch;align-content:center;
+    grid-template-columns:1.15fr 1fr .8fr;overflow:auto;
+    padding:18px max(18px,calc((100% - 1160px)/2))}
+  .acol{background:linear-gradient(180deg,#fff6e6,#ffe3bd);border-radius:20px;padding:14px 14px 16px;
+    box-shadow:0 8px 0 rgba(136,70,20,.45),0 16px 32px rgba(48,20,4,.35)}
+  .ahd{font-size:17px;font-weight:800;letter-spacing:.14em;color:#a06a2a;margin-bottom:10px}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tile{position:relative;border-radius:16px;padding:10px 10px 11px;background:#fffdf6;
+    border:3px solid #e2c49a;min-height:92px}
+  .tile .tn{font-size:17px;font-weight:800;color:#5e3410;line-height:1.1}
+  .tile .tw{font-size:26px;font-weight:800;color:#8c4a12;line-height:1}
+  .tile .tl{font-size:13px;font-weight:800;letter-spacing:.1em;color:#b08a5d}
+  .tile .pill{display:inline-block;margin-top:4px;padding:2px 9px;border-radius:999px;
+    font-size:13px;font-weight:800;letter-spacing:.08em;color:#fff}
+  .tile.locked{background:repeating-linear-gradient(45deg,#f3e6d2,#f3e6d2 7px,#eadcc4 7px,#eadcc4 14px);
+    border-style:dashed;border-color:#c9ab84}
+  .tile.locked .tn,.tile.locked .tl{color:#a4876a}
+  .amid{display:flex;flex-direction:column;align-items:stretch}
+  #asuits{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;gap:8px}
+  .suit{display:block;padding:10px 13px 11px;border-radius:14px;background:#fffdf6;border:3px solid #e2c49a}
+  .suit .top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .suit .sn{font-size:18px;font-weight:800;color:#5e3410;letter-spacing:.06em}
+  .suit .sv{font-size:15px;font-weight:800;color:#a06a2a;letter-spacing:.06em}
+  .suit .sd{margin-top:3px;font-size:15px;font-weight:600;color:#9a7853}
+  .suit.on{border-color:#2fae7a;background:#eefbf3}
+  .suit.on .sv{color:#15785a}
+  #astart{margin-top:auto;min-height:66px;border:0;border-radius:18px;font-family:inherit;
+    background:linear-gradient(180deg,#23e8cf,#0fae9b);color:#06433c;font-size:30px;font-weight:800;
+    letter-spacing:.08em;box-shadow:0 7px 0 #0a7268,0 12px 24px rgba(0,0,0,.33);cursor:pointer}
+  #astart:active{transform:translateY(5px);box-shadow:0 2px 0 #0a7268}
+  .srow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .srow span{font-size:15px;font-weight:800;letter-spacing:.1em;color:#a06a2a}
+  .srow b{font-size:27px;font-weight:800;color:#8c4a12}
+  /* phone: the record becomes one strip at the top so dishes + SETS + START all fit without a
+     scroll - a START you have to scroll to find is a START you do not press. */
+  @media (max-aspect-ratio:1/1){
+    #arm{grid-template-columns:1fr;grid-template-rows:auto auto auto;align-content:start;
+      padding:10px 10px 12px;gap:10px}
+    #arecord{order:-1;padding:11px 12px 13px}
+    #arecord .ahd{margin-bottom:7px}
+    #arecord .rows{display:flex;gap:9px}
+    .srow{flex:1;flex-direction:column;align-items:center;gap:1px;margin:0}
+    .srow span{font-size:13px;letter-spacing:.05em}
+    .srow b{font-size:24px}
+    .ahd{font-size:15px;margin-bottom:7px}
+    .acol{padding:11px 11px 12px}
+    .tiles{grid-template-columns:1fr 1fr 1fr;gap:7px}
+    .tile{min-height:72px;padding:8px 7px 9px}
+    .tile .tn{font-size:16px}
+    .tile .tl{font-size:11px}
+    .tile .tw{font-size:23px}
+    .tile .pill{font-size:12px;padding:1px 8px;margin-top:3px}
+    .suit{padding:7px 11px 8px}
+    .suit .sn{font-size:17px}
+    .suit .sd{font-size:13px;margin-top:1px}
+    #asuits{gap:7px}
+    #astart{margin-top:8px;min-height:58px;font-size:27px}
+  }
 </style>
 </head>
 <body>
@@ -82,8 +147,31 @@
       <div class="sc" id="fsc">0</div>
       <div class="stats"><span><b id="ftime">0:00</b>SURVIVED</span><span><b id="fmice">0</b>MICE DOWN</span><span><b id="fcombo">x1</b>BEST COMBO</span></div>
       <div class="kept"><div class="coin" style="position:static"></div><span id="fgold">+0</span>&nbsp;KEPT</div>
+      <div class="loot" id="loot"></div>
       <div class="bst" id="fbst"></div>
-      <button id="again">DEFEND AGAIN</button>
+      <button id="again">CONTINUE</button>
+    </div>
+  </div>
+  <div id="armory">
+    <div id="arm">
+      <div class="acol">
+        <div class="ahd">YOUR DISHES</div>
+        <div class="tiles" id="atiles"></div>
+      </div>
+      <div class="acol amid">
+        <div class="ahd">SETS</div>
+        <div id="asuits"></div>
+        <button id="astart">START</button>
+      </div>
+      <div class="acol" id="arecord">
+        <div class="ahd">RECORD</div>
+        <div class="rows">
+          <div class="srow"><span>GOLD</span><b id="sgold">0</b></div>
+          <div class="srow"><span>BEST</span><b id="sbest">0</b></div>
+          <div class="srow"><span>NIGHT</span><b id="sround">1</b></div>
+          <div class="srow"><span>WEIGHT</span><b id="sweight">0</b></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -156,7 +244,9 @@ var KINDS = {
              sc:[1.15, 0.5, 1.15] },
   barrel: { col:0x6bd94c, mass:0.70, r:0.95, fric:0.955, plow:0.80, push:0.85, shape:"cyl", pts:1 },
   keg   : { col:0xff5a4e, mass:1.10, r:1.00, fric:0.950, plow:0.60, push:1.00, shape:"cyl", pts:1, boom:5.2 },
-  ice   : { col:0x74d4ff, mass:0.90, r:1.00, fric:0.990, plow:0.88, push:0.90, shape:"box", pts:1 }
+  ice   : { col:0x74d4ff, mass:0.90, r:1.00, fric:0.990, plow:0.88, push:0.90, shape:"box", pts:1 },
+  /* GD2 adds the sixth dish: a jam jar. Its job is the STICK suit - a mouse it touches crawls. */
+  jar   : { col:0xe8a33d, mass:1.45, r:1.05, fric:0.962, plow:0.80, push:1.15, shape:"cyl", pts:1, glue:1.9 }
 };
 /* round 0 already has both a feather-light crate and a stone slab: feeling that difference IS the
    toy, so it must be in the first ten seconds, not unlocked later. */
@@ -168,6 +258,109 @@ var ROUND_POOL = [
   ["crate","slab","slab","barrel","keg","ice"]
 ];
 var ROUND_BANNER = ["", "NEW: BOUNCY APPLES", "NEW: HOT SAUCE", "NEW: SLIPPERY PLATES", "HEAVY POTS"];
+
+/* ---------- GD2: do + dong nem (items and what lies on the table) -------------------------
+   KDR lesson: every round hands something back, and a loss never takes it away. The ONE thing an
+   item is allowed to change here is WHAT LIES IN THE HEAP - never how the hand feels (plan F1).
+   Rarity is not a stat on a card either (F2): a rarer dish is bigger and HEAVIER, and because the
+   hand spring is a = k*dx/m, heavier is genuinely slower to leave the hand. That gap is the gate
+   (metacheck rankGapPct >= 15). There is no damage number anywhere; mice only die by falling. */
+var SLOTS = [
+  { id:"mug",   kind:"crate",  suit:"HEAVY", name:"MUG" },
+  { id:"pot",   kind:"slab",   suit:"HEAVY", name:"CAST POT" },
+  { id:"apple", kind:"barrel", suit:"BOOM",  name:"APPLE" },
+  { id:"sauce", kind:"keg",    suit:"BOOM",  name:"HOT SAUCE" },
+  { id:"plate", kind:"ice",    suit:"STICK", name:"PLATE" },
+  { id:"jam",   kind:"jar",    suit:"STICK", name:"JAM JAR" }
+];
+/* 5 tiers. m = mass multiplier, s = size multiplier, col = the rim colour on the dish itself,
+   so rarity is readable in the 3D scene and not only in a menu. */
+var RANKS = [
+  { n:"COMMON", m:1.00, s:1.00, col:0x9b8e7a },
+  { n:"FINE",   m:1.26, s:1.06, col:0x47a85a },
+  { n:"RARE",   m:1.58, s:1.12, col:0x3f93dc },
+  { n:"EPIC",   m:1.96, s:1.13, col:0xa65ad8 },
+  { n:"LEGEND", m:2.40, s:1.18, col:0xffb02e }
+];
+var SUIT_NAME = { HEAVY:"HEAVY", BOOM:"BOOM", STICK:"STICK" };
+/* how often each dish turns up in the heap. Light things dominate so the heap stays throwable;
+   the pot is rare on the table, which is why finding one there feels like an opportunity. */
+var SLOT_W = { mug:3.0, pot:1.3, apple:2.0, sauce:1.4, plate:2.0, jam:1.6 };
+var KIND2SLOT = {}; for (var si = 0; si < SLOTS.length; si++) KIND2SLOT[SLOTS[si].kind] = SLOTS[si].id;
+function slotOf(id){ for (var i = 0; i < SLOTS.length; i++) if (SLOTS[i].id === id) return SLOTS[i]; return SLOTS[0]; }
+
+var GEAR_KEY = "tablecat.gear1";
+/* save 0 owns exactly the two dishes the first ten seconds need (F5): a light mug and the pot. */
+var gear = (function(){
+  try { var o = JSON.parse(localStorage.getItem(GEAR_KEY) || "null");
+        if (o && typeof o === "object" && !(o instanceof Array)) return o; } catch (x) {}
+  return { mug: 0, pot: 0 };
+})();
+var _ik = {};
+function saveGear(){ _ik = {}; try { localStorage.setItem(GEAR_KEY, JSON.stringify(gear)); } catch (x) {} }
+function owns(id){ return gear[id] !== undefined && gear[id] !== null; }
+/* a suit scores rank+1 per owned dish, so two commons = 2 and a FINE + a COMMON = 3.
+   3 -> MASTERY, 6 -> DOMINION. Only the suit EFFECT grows; mass and the hand never do. */
+function suitSum(suit){ var s = 0; for (var i = 0; i < SLOTS.length; i++){ var sl = SLOTS[i];
+  if (sl.suit === suit && owns(sl.id)) s += gear[sl.id] + 1; } return s; }
+function suitTier(suit){ var s = suitSum(suit); return s >= 6 ? 2 : (s >= 3 ? 1 : 0); }
+function suitMul(suit){ return [1, 1.25, 1.5][suitTier(suit)]; }
+
+/* the derived kind a thrown dish actually uses. Cached, and the cache is dropped whenever gear
+   changes so a mastery that just came online is live on the next dish that lands. */
+function itemK(id, rank){
+  rank = Math.max(0, Math.min(4, rank | 0));
+  var ck = id + "#" + rank;
+  if (_ik[ck]) return _ik[ck];
+  var sl = slotOf(id), base = KINDS[sl.kind], R = RANKS[rank], k = {};
+  for (var p in base) k[p] = base[p];
+  k.mass = Math.round(base.mass * R.m * 1000) / 1000;
+  k.r = Math.round(base.r * R.s * 1000) / 1000;
+  k.slot = sl.id; k.rank = rank; k.suit = sl.suit; k.rankCol = R.col; k.sname = sl.name;
+  var mul = suitMul(sl.suit);
+  if (sl.suit === "HEAVY") {
+    k.plow = Math.min(0.97, base.plow + 0.028 * rank * mul);
+    k.push = base.push * (1 + 0.065 * rank * mul);
+  } else if (sl.suit === "BOOM") {
+    var b0 = base.boom || (rank >= 1 ? 3.0 : 0);
+    if (b0) k.boom = Math.round(b0 * (1 + 0.13 * rank) * mul * 100) / 100;
+  } else if (sl.suit === "STICK") {
+    var g0 = base.glue || (rank >= 1 ? 1.1 : 0);
+    if (g0) k.glue = Math.round((g0 + 0.3 * rank) * mul * 100) / 100;
+  }
+  _ik[ck] = k;
+  return k;
+}
+function gearItem(id){ return { id: id, rank: owns(id) ? gear[id] : 0 }; }
+/* what the heap serves up: only dishes you own, weighted so it stays mostly light */
+function pickItem(){
+  var list = [], tot = 0, i;
+  for (i = 0; i < SLOTS.length; i++) { var sl = SLOTS[i];
+    if (!owns(sl.id)) continue;
+    var w = SLOT_W[sl.id] || 1; list.push([sl.id, w]); tot += w; }
+  if (!list.length) return { id: "mug", rank: 0 };
+  var x = rnd() * tot;
+  for (i = 0; i < list.length; i++) { x -= list[i][1]; if (x <= 0) return { id: list[i][0], rank: gear[list[i][0]] }; }
+  return { id: list[0][0], rank: gear[list[0][0]] };
+}
+/* loot: one dish per round, kept whether you won or lost (KDR). A duplicate at the same tier
+   MERGES up a tier, a duplicate below what you own pays out in gold, so nothing is junk. */
+function rollLoot(round){
+  var un = [], own = [], i;
+  for (i = 0; i < SLOTS.length; i++) (owns(SLOTS[i].id) ? own : un).push(SLOTS[i].id);
+  var id = (un.length && (rnd() < 0.62 || !own.length)) ? un[Math.floor(rnd() * un.length)]
+                                                        : own[Math.floor(rnd() * own.length)];
+  var bonus = Math.min(3, Math.floor(round / 1.5)), roll = rnd(), rank = bonus;
+  if (roll > 0.86) rank = bonus + 2; else if (roll > 0.55) rank = bonus + 1;
+  rank = Math.max(0, Math.min(4, rank));
+  var how;
+  if (!owns(id)) { gear[id] = rank; how = "NEW"; }
+  else if (rank > gear[id]) { gear[id] = rank; how = "UPGRADE"; }
+  else if (gear[id] < 4) { gear[id] = gear[id] + 1; how = "MERGED"; }
+  else { how = "GOLD"; }
+  saveGear();
+  return { id: id, rank: gear[id], how: how, name: slotOf(id).name };
+}
 
 /* muc kiem "moc lot man" dung chung - tools/framecheck.js, tools/CAMERA-3D.md */
 function installFrameProbe(){
@@ -354,14 +547,30 @@ var DISH = {
   ice: function(g){
     var pl = new T.Mesh(new T.CylinderGeometry(1.0, 0.8, 0.22, 24), M(0xf4fbff, 0.3)); g.add(pl);
     var rim = new T.Mesh(new T.TorusGeometry(0.92, 0.07, 6, 24), M(0x5aa7e6, 0.4)); rim.rotation.x = Math.PI / 2; rim.position.y = 0.11; g.add(rim);
+  },
+  jar: function(g){
+    /* amber glass, a brass lid and a visible slump of jam: it reads as sticky before it lands */
+    var bd = new T.Mesh(new T.CylinderGeometry(0.72, 0.66, 1.3, 18), M(0xe8a33d, 0.25)); g.add(bd);
+    var jm = new T.Mesh(new T.CylinderGeometry(0.66, 0.6, 0.9, 18), M(0x9c2a1c, 0.2)); jm.position.y = -0.17; g.add(jm);
+    var lid = new T.Mesh(new T.CylinderGeometry(0.78, 0.78, 0.2, 18), M(0xd8a93f, 0.35, 0.6)); lid.position.y = 0.72; g.add(lid);
+    var dp = new T.Mesh(new T.SphereGeometry(0.26, 10, 8), M(0x9c2a1c, 0.2)); dp.scale.y = 0.7; dp.position.set(0.5, 0.62, 0.3); g.add(dp);
   }
 };
-function getBlockMesh(kind){
-  if (!meshPool[kind]) meshPool[kind] = [];
-  var p = meshPool[kind];
+/* pooled per (dish, rarity): a rarer dish carries a coloured rim, so you can tell an EPIC pot
+   from a COMMON one on the table without opening a menu. Size already differs (RANKS.s). */
+function getBlockMesh(slotId, rank){
+  var sl = slotOf(slotId), key = slotId + "#" + rank;
+  if (!meshPool[key]) meshPool[key] = [];
+  var p = meshPool[key];
   for (var i = 0; i < p.length; i++) if (!p[i].visible) { p[i].visible = true; return p[i]; }
   var m = new T.Group();
-  DISH[kind](m);
+  DISH[sl.kind](m);
+  if (rank > 0) {
+    var rim = new T.Mesh(new T.TorusGeometry(0.98, 0.1, 8, 22),
+      new T.MeshStandardMaterial({ color: RANKS[rank].col, emissive: RANKS[rank].col,
+                                   emissiveIntensity: 0.35, roughness: 0.4 }));
+    rim.rotation.x = Math.PI / 2; rim.position.y = -0.78; m.add(rim);
+  }
   m.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
   scene.add(m); p.push(m);
   return m;
@@ -372,6 +581,7 @@ function getWalker(){
   /* a mouse walking +z (toward the cat). Same footprint as toy3's walker (WALK_R 0.85). */
   var g = new T.Group();
   var mt = M(0x9aa0aa, 0.8), pink = M(0xf7a6b6, 0.7);
+  g.__mt = mt;   /* own material per pooled mouse, so a glued one can go amber on its own */
   var body = new T.Mesh(new T.SphereGeometry(0.8, 14, 10), mt); body.scale.set(0.9, 0.8, 1.15);
   body.position.y = 0.66; g.add(body);
   var head = new T.Mesh(new T.SphereGeometry(0.5, 14, 10), mt); head.scale.set(1, 0.95, 1.15);
@@ -442,6 +652,8 @@ var elBanner = document.getElementById("banner"), elFlash = document.getElementB
 var elOver = document.getElementById("over"), elFsc = document.getElementById("fsc");
 var elFbst = document.getElementById("fbst"), elWhy = document.getElementById("why");
 var elAgain = document.getElementById("again"), ui = document.getElementById("ui");
+var elLoot = document.getElementById("loot"), elArm = document.getElementById("armory");
+var elTiles = document.getElementById("atiles"), elSuits = document.getElementById("asuits");
 var hpEls = [];
 for (var hi = 0; hi < 3; hi++) { var hel = document.createElement("div"); hel.className = "hp"; elHearts.appendChild(hel); hpEls.push(hel); }
 var popPool = [];
@@ -589,31 +801,35 @@ cv.addEventListener("pointercancel", ptrEnd);
 var hand = { x: 0, z: Z_PLAT - 1.4, vx: 0, vz: 0 };
 var handPrev = { x: 0, z: Z_PLAT - 1.4 };
 var blocks = [], walkers = [], held = null, S = {}, shake = 0, frames = 0;
+var lastLoot = null;
 var grabTick = 0;
 
-function spawnBlock(kind, x, z, fromSky){
-  var k = KINDS[kind];
-  var b = { kind: kind, k: k, x: x, z: z, y: fromSky ? 9 : k.r,
+/* it is {id, rank}; a bare base-kind string still works and resolves to the owned tier, so the
+   bot scripts and firstten.js keep driving the game exactly as before. */
+function spawnBlock(it, x, z, fromSky){
+  if (typeof it === "string") it = gearItem(KIND2SLOT[it] || it);
+  var k = itemK(it.id, it.rank);
+  var b = { kind: it.id, slot: it.id, rank: k.rank, k: k, x: x, z: z, y: fromSky ? 9 : k.r,
             vx: 0, vz: 0, vy: 0, state: fromSky ? "fly" : "rest",
-            m: getBlockMesh(kind), rx: 0, ry: rr(0, 3), rz: 0, spin: 0, flung: false };
+            m: getBlockMesh(it.id, k.rank), rx: 0, ry: rr(0, 3), rz: 0, spin: 0, flung: false };
   blocks.push(b);
   return b;
 }
 function spawnWalker(x, z){
   var w = { x: x, z: z === undefined ? Z_SPAWN : z, y: -1.5, vx: 0, vz: 0, vy: 0,
             fly: false, climb: 0.45, dead: 0, tilt: 0, spin: 0, phase: rr(0, 6.28),
-            m: getWalker() };
+            glue: 0, m: getWalker() };
+  if (w.m.__mt) w.m.__mt.color.setHex(0x9aa0aa);
   walkers.push(w);
   return w;
 }
 
-function pickKind(){
-  var pool = ROUND_POOL[Math.min(ROUND_POOL.length - 1, S.round)];
-  return pool[Math.floor(rnd() * pool.length) % pool.length];
-}
+/* kept for the bot presets only (setRound hands out a loadout per round) - the live heap is
+   served by pickItem() from what the player actually owns. */
+function pickKind(){ return pickItem(); }
 function heapSlot(i){
   var cols = 3;
-  var cx = (-1 + (i % cols)) * 2.3 + rr(-0.3, 0.3);
+  var cx = (-1 + (i % cols)) * 2.75 + rr(-0.25, 0.25);
   var cz = Z_BREACH + 1.1 + Math.floor(i / cols) * 1.7;
   return { x: Math.max(-LANE_HW + 1.2, Math.min(LANE_HW - 1.2, cx)), z: Math.min(Z_PLAT - 1.0, cz) };
 }
@@ -629,6 +845,8 @@ function startRound(){
         throws: 0, supplyT: 0, spawnT: 1.2, lost: 0 };
   frames = 0;
   elOver.classList.remove("on");
+  elArm.classList.remove("on");
+  ui.classList.remove("arm");
   elScore.textContent = "0";
   for (var h = 0; h < 3; h++) hpEls[h].className = "hp";
   elHint.style.opacity = "1";
@@ -643,9 +861,12 @@ function startRound(){
   var s0 = heapSlot(0);
   spawnBlock("slab", s0.x, s0.z, false);
   for (var b2 = 1; b2 < 4; b2++) { var sl = heapSlot(b2); spawnBlock("crate", sl.x, sl.z, false); }
-  if (r > 0 && ROUND_BANNER[Math.min(ROUND_BANNER.length - 1, r)]) {
-    elBanner.textContent = ROUND_BANNER[Math.min(ROUND_BANNER.length - 1, r)];
+  /* the banner now says what you just earned: the dish is already in the heap this round */
+  if (lastLoot) {
+    elBanner.textContent = lastLoot.how === "GOLD" ? "+18 GOLD"
+      : lastLoot.how + ": " + RANKS[lastLoot.rank].n + " " + lastLoot.name;
     elBanner.style.opacity = "1";
+    lastLoot = null;
     setTimeout(function(){ elBanner.style.opacity = "0"; }, 1700);
   }
   hand.x = 0; hand.z = Z_PLAT - 1.4; hand.vx = hand.vz = 0;
@@ -655,7 +876,15 @@ function startRound(){
 function gameOver(why){
   S.phase = "over";
   if (S.score > S.best) { S.best = S.score; localStorage.setItem("tablecat.best", String(S.score)); }
-  localStorage.setItem("tablecat.round", String(Math.min(ROUND_POOL.length - 1, S.round + 1)));
+  localStorage.setItem("tablecat.round", String(Math.min(9, S.round + 1)));
+  /* KDR: the loss screen KEEPS something. One dish per round, banked before the card is drawn. */
+  lastLoot = rollLoot(S.round);
+  if (lastLoot.how === "GOLD") bankFlat(18);
+  elLoot.textContent = lastLoot.how === "GOLD" ? "DUPLICATE SOLD  +18"
+    : lastLoot.how + "  -  " + RANKS[lastLoot.rank].n + " " + lastLoot.name;
+  elLoot.style.background = "linear-gradient(180deg," + hexCss(RANKS[lastLoot.rank].col) + "33,"
+    + hexCss(RANKS[lastLoot.rank].col) + "22)";
+  elLoot.style.borderColor = hexCss(RANKS[lastLoot.rank].col);
   elWhy.textContent = why;
   elFsc.textContent = String(S.score);
   var sec = Math.floor(S.elapsed);
@@ -664,6 +893,7 @@ function gameOver(why){
   document.getElementById("fcombo").textContent = "x" + S.bestCombo;
   document.getElementById("fgold").textContent = "+" + (S.gold || 0);
   elFbst.textContent = "BEST " + S.best;
+  elHint.style.opacity = "0";   /* the coaching line must not read through the loss card */
   elOver.classList.add("on");
 }
 
@@ -783,6 +1013,12 @@ function bankGold(w, n){
     else { c.remove(); elGoldV.textContent = String(goldBank); elGold.classList.remove("bump"); void elGold.offsetWidth; elGold.classList.add("bump"); }
   })(t0);
 }
+function bankFlat(n){
+  goldBank += n; S.gold = (S.gold || 0) + n;
+  try { localStorage.setItem("tablecat.gold", String(goldBank)); } catch (x) {}
+  elGoldV.textContent = String(goldBank);
+}
+function hexCss(h){ return "#" + ("000000" + h.toString(16)).slice(-6); }
 function pitWalker(w, mult){
   if (w.dead) return;
   w.dead = 1;
@@ -827,6 +1063,11 @@ function hitWalker(b, w, nx, nz, vn){
   burst(w.x, 1.0, w.z, 0xffd36b, 5, 4);
   thud(0.1 + Math.min(0.2, vn * 0.005));
   shake = Math.max(shake, Math.min(0.5, 0.12 + vn * 0.006));
+  if (b.k.glue && !w.dead) {
+    w.glue = Math.max(w.glue || 0, b.k.glue);
+    if (w.m.__mt) w.m.__mt.color.setHex(0xe8a33d);
+    burst(w.x, 0.7, w.z, 0x9c2a1c, 5, 2.6);
+  }
   if (b.k.boom) boom(b);
 }
 
@@ -932,14 +1173,42 @@ function step(dt){
         }
       }
     } else {
-      a.z += wspeed * dt;
-      a.phase += dt * 9;
+      if (a.glue > 0) {
+        a.glue -= dt;
+        a.z += wspeed * 0.42 * dt;        /* jam on the paws: it crawls instead of trotting */
+        a.phase += dt * 4;
+        if (a.glue <= 0 && a.m.__mt) a.m.__mt.color.setHex(0x9aa0aa);
+      } else {
+        a.z += wspeed * dt;
+        a.phase += dt * 9;
+      }
     }
     if (Math.abs(a.x) > LANE_HW || a.z < Z_EDGE) { pitWalker(a); a.vy = Math.min(a.vy, 0); continue; }
     if (a.z > Z_BREACH) {
       a.m.visible = false; walkers.splice(n, 1);
       hurt();
       continue;
+    }
+  }
+
+  /* a heap of six dishes of five different sizes has to look like a heap, not like one dish
+     clipping through another: anything at rest pushes its neighbours out by the overlap. */
+  for (var sa = 0; sa < blocks.length; sa++) {
+    var A = blocks[sa];
+    if (A.dead || (A.state !== "rest" && A.state !== "skid")) continue;
+    for (var sb = sa + 1; sb < blocks.length; sb++) {
+      var B = blocks[sb];
+      if (B.dead || (B.state !== "rest" && B.state !== "skid")) continue;
+      var ddx = B.x - A.x, ddz = B.z - A.z, dd = Math.hypot(ddx, ddz), want = (A.k.r + B.k.r) * 0.92;
+      if (dd >= want) continue;
+      if (dd < 0.01) { ddx = 0.01; ddz = 0; dd = 0.01; }
+      var push = (want - dd) * 0.5;
+      A.x -= ddx / dd * push; A.z -= ddz / dd * push;
+      B.x += ddx / dd * push; B.z += ddz / dd * push;
+      var lim = LANE_HW - 0.9;
+      A.x = Math.max(-lim, Math.min(lim, A.x)); B.x = Math.max(-lim, Math.min(lim, B.x));
+      A.z = Math.max(Z_BREACH + 0.6, Math.min(Z_PLAT - 0.5, A.z));
+      B.z = Math.max(Z_BREACH + 0.6, Math.min(Z_PLAT - 0.5, B.z));
     }
   }
 
@@ -950,7 +1219,7 @@ function step(dt){
   if (live < SUPPLY_MAX && S.supplyT <= 0) {
     S.supplyT = SUPPLY_S;
     var sl2 = heapSlot(live);
-    spawnBlock(pickKind(), sl2.x, sl2.z, true);
+    spawnBlock(pickItem(), sl2.x, sl2.z, true);
   }
 
   /* walkers keep coming, a bit faster each time */
@@ -1050,7 +1319,52 @@ function tick(now){
   requestAnimationFrame(tick);
 }
 
-elAgain.addEventListener("click", function(e){ e.stopPropagation(); startRound(); });
+/* ---------- THE TABLE: one screen between rounds, and it is two taps back into play ----------
+   CONTINUE on the loss card opens it, START goes straight in. Nothing in here is a choice you can
+   get wrong: every dish you own is always on the table (F4 - no loadout puzzle mid-run). */
+function renderArmory(){
+  var i, html = "";
+  for (i = 0; i < SLOTS.length; i++) {
+    var sl = SLOTS[i];
+    if (!owns(sl.id)) {
+      html += '<div class="tile locked"><div class="tn">' + sl.name + '</div>'
+            + '<div class="tl">NOT FOUND YET</div></div>';
+      continue;
+    }
+    var k = itemK(sl.id, gear[sl.id]), R = RANKS[gear[sl.id]];
+    html += '<div class="tile" style="border-color:' + hexCss(R.col) + '">'
+          + '<div class="tn">' + sl.name + '</div>'
+          + '<div class="tl">WEIGHT</div>'
+          + '<div class="tw">' + k.mass.toFixed(2) + '</div>'
+          + '<div class="pill" style="background:' + hexCss(R.col) + '">' + R.n + '</div>'
+          + '</div>';
+  }
+  elTiles.innerHTML = html;
+  var suits = ["HEAVY", "BOOM", "STICK"], shtml = "";
+  var what = { HEAVY:"PLOUGHS THROUGH", BOOM:"BLAST RADIUS", STICK:"GLUE TIME" };
+  for (i = 0; i < suits.length; i++) {
+    var t = suitTier(suits[i]);
+    shtml += '<div class="suit' + (t ? " on" : "") + '"><div class="top">'
+           + '<span class="sn">' + suits[i] + '</span>'
+           + '<span class="sv">' + (t === 2 ? "DOMINION x1.5" : t === 1 ? "MASTERY x1.25" : "x1") + '</span></div>'
+           + '<div class="sd">' + what[suits[i]] + '  -  ' + (t === 2 ? "MAX" : suitSum(suits[i]) + "/6") + '</div></div>';
+  }
+  elSuits.innerHTML = shtml;
+  document.getElementById("sgold").textContent = String(goldBank);
+  document.getElementById("sbest").textContent = String(parseInt(localStorage.getItem("tablecat.best") || "0", 10) || 0);
+  document.getElementById("sround").textContent = String((parseInt(localStorage.getItem("tablecat.round") || "0", 10) || 0) + 1);
+  /* what the heap will weigh on average: the one number that says "my table got stronger" */
+  var tot = 0, wsum = 0;
+  for (i = 0; i < SLOTS.length; i++) { var s2 = SLOTS[i];
+    if (!owns(s2.id)) continue;
+    var w = SLOT_W[s2.id] || 1; tot += w; wsum += w * itemK(s2.id, gear[s2.id]).mass; }
+  document.getElementById("sweight").textContent = (tot ? wsum / tot : 0).toFixed(2);
+}
+function openArmory(){ renderArmory(); elOver.classList.remove("on"); elArm.classList.add("on"); ui.classList.add("arm"); }
+function closeArmory(){ elArm.classList.remove("on"); ui.classList.remove("arm"); }
+elAgain.addEventListener("click", function(e){ e.stopPropagation(); openArmory(); });
+document.getElementById("astart").addEventListener("click", function(e){
+  e.stopPropagation(); closeArmory(); startRound(); });
 elOver.addEventListener("pointerdown", function(){ startRound(); });
 
 startRound();
@@ -1083,8 +1397,8 @@ window.__toy = {
     for (var i = 0; i < blocks.length; i++) {
       var b = blocks[i];
       if (b.dead || b.state === "falling") continue;
-      out.push({ x: b.x, z: b.z, y: b.y, kind: b.kind, state: b.state, mass: b.k.mass,
-                 sp: Math.hypot(b.vx, b.vz) });
+      out.push({ x: b.x, z: b.z, y: b.y, kind: b.kind, slot: b.slot, rank: b.rank,
+                 suit: b.k.suit, state: b.state, mass: b.k.mass, sp: Math.hypot(b.vx, b.vz) });
     }
     return out;
   },
@@ -1137,8 +1451,78 @@ window.__toy = {
     cv.dispatchEvent(new PointerEvent("pointerup", {
       clientX: s.x, clientY: s.y, pointerType: "mouse", buttons: 0, bubbles: true }));
   },
-  setRound: function(r){ localStorage.setItem("tablecat.round", String(r)); startRound(); },
+  /* bot presets: a round number also implies the loadout a player would plausibly hold by then,
+     so bot runs stay comparable across rounds instead of always seeing the save-0 two dishes. */
+  setRound: function(r){
+    localStorage.setItem("tablecat.round", String(r));
+    var preset = [ { mug:0, pot:0 },
+                   { mug:0, pot:0, plate:0 },
+                   { mug:1, pot:0, plate:0, apple:1 },
+                   { mug:1, pot:1, plate:1, apple:1, sauce:1 },
+                   { mug:2, pot:2, plate:1, apple:2, sauce:1, jam:2 } ][Math.min(4, Math.max(0, r | 0))];
+    gear = {}; for (var k in preset) gear[k] = preset[k];
+    saveGear();
+    lastLoot = null;
+    startRound();
+  },
+  setGear: function(g){ gear = {}; for (var k in g) gear[k] = g[k]; saveGear(); lastLoot = null; startRound(); },
+  gear: function(){ var o = {}; for (var k in gear) o[k] = gear[k]; return o; },
+  gold: function(){ return goldBank; },
+  armoryOpen: function(){ return elArm.classList.contains("on"); },
+  openArmory: openArmory,
+  tapContinue: function(){ elAgain.click(); },
+  tapStart: function(){ document.getElementById("astart").click(); },
+  loot: function(){ return lastLoot; },
+  lose: function(){ gameOver("THE MICE GOT THE FISH"); },
+  rollLoot: function(r){ var l = rollLoot(r === undefined ? 0 : r); lastLoot = null; return l; },
+  itemInfo: function(id, rank){ var k = itemK(id, rank); return { mass:k.mass, r:k.r, suit:k.suit,
+    plow:k.plow, push:k.push, boom:k.boom || 0, glue:k.glue || 0 }; },
+  slots: SLOTS, ranks: RANKS,
   restart: startRound
+};
+
+/* ---------- GD2 gates (metacheck.js) ---------------------------------------------------------
+   The one thing that proves rarity is physics and not a stat line: the same wind-up, the same
+   dish, five tiers - the release speed has to fall as the tier climbs. Gate: >= 15% from COMMON
+   to LEGEND on every dish, measured through the SAME sim the feel gates use. */
+window.__meta = {
+  /* steps = how long the wind-up is. The long 46-step drag used by the feel gates SATURATES at
+     HAND_MAX for anything light, and a saturated number measures the speed ceiling, not the mass
+     (playtest.md, the two bad gates of 05/11). A player's real flick is 5-8 units, so that is
+     what the rank gap is measured at. */
+  rankMass: function(steps){
+    var path = [], i, out = {}, N = steps || 13;
+    for (i = 0; i < 4; i++) path.push({ x: 0, z: Z_PLAT - 1.4 });
+    for (i = 0; i < N; i++) path.push({ x: 0, z: Z_PLAT - 1.4 - i * 0.42 });
+    var worst = 1e9, worstSlot = null;
+    for (var si2 = 0; si2 < SLOTS.length; si2++) {
+      var id = SLOTS[si2].id, row = [];
+      for (var r = 0; r < 5; r++) {
+        var res = window.__feel.sim(path, 8, itemK(id, r));
+        row.push(Math.round(res.endSp * 10) / 10);
+      }
+      var gap = row[0] ? (row[0] - row[4]) / row[0] * 100 : 0;
+      out[id] = { exit: row, gapPct: Math.round(gap * 10) / 10,
+                  mass: [itemK(id, 0).mass, itemK(id, 4).mass] };
+      if (gap < worst) { worst = gap; worstSlot = id; }
+      /* monotone: every tier must be slower than the one below it, or "rarer = heavier" is a lie */
+      var mono = true;
+      for (var q = 1; q < 5; q++) if (row[q] > row[q - 1] + 0.05) mono = false;
+      out[id].monotone = mono;
+    }
+    return { per: out, worstGapPct: Math.round(worst * 10) / 10, worstSlot: worstSlot };
+  },
+  suitInfo: function(){
+    var o = {};
+    ["HEAVY", "BOOM", "STICK"].forEach(function(su){ o[su] = { sum: suitSum(su), tier: suitTier(su), mul: suitMul(su) }; });
+    return o;
+  },
+  heapMix: function(){
+    /* what the heap is actually serving, 600 draws - the pile has to reflect what you own */
+    var c = {}, i;
+    for (i = 0; i < 600; i++) { var it = pickItem(); c[it.id] = (c[it.id] || 0) + 1; }
+    return c;
+  }
 };
 
 /* ---------- bo kiem feel dung chung (tools/feelcheck.js, tools/FEEL-3D.md) ---------- */
@@ -1169,7 +1553,7 @@ window.__feel = {
     S.phase = "idle";
     var b = null;
     if (kind) {
-      b = { kind: kind, k: KINDS[kind], x: 0, z: Z_PLAT - 1.4, y: HOLD_Y, vx: 0, vz: 0, vy: 0,
+      b = { kind: kind, k: (typeof kind === "string" ? KINDS[kind] : kind), x: 0, z: Z_PLAT - 1.4, y: HOLD_Y, vx: 0, vz: 0, vy: 0,
             state: "held", m: null, rx: 0, ry: 0, rz: 0, spin: 0 };
       held = b;
     } else held = null;

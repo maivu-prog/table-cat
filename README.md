@@ -1,5 +1,5 @@
 # table-cat
 
-Table Cat - fling dishes off the dinner table to stop the mice stealing the cat's fish
+Table Cat - fling dishes off the table. Full build of the FLING toy.
 
 Play: https://maivu-prog.github.io/table-cat/
