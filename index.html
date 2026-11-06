@@ -70,8 +70,43 @@
     background:linear-gradient(180deg,rgba(60,28,8,.82),rgba(36,16,4,.9))}
   #armory.on{display:block}
   #arm{position:absolute;inset:0;display:grid;gap:14px;align-items:stretch;align-content:center;
-    grid-template-columns:1.15fr 1fr .8fr;overflow:auto;
+    grid-template-columns:1.1fr 1fr .9fr;overflow:auto;
+    grid-template-rows:auto 1fr auto;
+    grid-template-areas:"dish house rec" "dish house sets" "dish house go";
     padding:18px max(18px,calc((100% - 1160px)/2))}
+  #arecord{grid-area:rec} #adish{grid-area:dish} #ahouse{grid-area:house} #asets{grid-area:sets}
+  #arecord .rows{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+  #arecord .srow{flex-direction:column;align-items:center;gap:0;margin:0}
+  #asuits{justify-content:flex-start}
+  /* ---- THE HOUSE: where the gold goes. One card per branch, a branch only appears once it is
+     unlocked and the newest one glows, so a screen never shows more than one new thing. ---- */
+  #hcards{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .hc{position:relative;border-radius:16px;padding:9px 10px 10px;background:#fffdf6;border:3px solid #e2c49a;
+    display:flex;flex-direction:column;gap:2px}
+  .hc .hn{font-size:16px;font-weight:800;color:#5e3410;letter-spacing:.04em;line-height:1.1}
+  .hc .hd{font-size:13px;font-weight:700;color:#9a7853;line-height:1.15;min-height:30px}
+  .hc .lv{display:flex;gap:4px;margin:2px 0 3px}
+  .hc .lv i{width:12px;height:12px;border-radius:50%;background:#eadcc4;box-shadow:inset 0 1px 0 #cdb795}
+  .hc .lv i.on{background:#ffc21a;box-shadow:0 1px 0 #8f5c00}
+  .hc.new{border-color:#ffc21a;animation:glow 1.1s ease-in-out infinite alternate}
+  @keyframes glow{from{box-shadow:0 0 0 0 rgba(255,194,26,.0)}to{box-shadow:0 0 0 6px rgba(255,194,26,.55)}}
+  .hc.tease{background:repeating-linear-gradient(45deg,#f3e6d2,#f3e6d2 7px,#eadcc4 7px,#eadcc4 14px);
+    border-style:dashed;border-color:#c9ab84}
+  .hc.tease .hn,.hc.tease .hd{color:#a4876a}
+  .buy{margin-top:auto;min-height:40px;border:0;border-radius:12px;font-family:inherit;font-size:19px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;
+    background:linear-gradient(180deg,#ffe066,#ffb81a);color:#6a3f00;box-shadow:0 4px 0 #b97800}
+  .buy:active{transform:translateY(3px);box-shadow:0 1px 0 #b97800}
+  .buy.no{background:#eadcc4;color:#a4876a;box-shadow:0 4px 0 #c9ab84}
+  .buy.max{background:#d9f3e6;color:#15785a;box-shadow:0 4px 0 #9fd8bd}
+  .buy .coin,.up .coin{position:static;width:18px;height:18px}
+  .up{width:100%;margin-top:6px;min-height:32px;border:0;border-radius:10px;padding:2px 7px;font-family:inherit;
+    font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;
+    background:linear-gradient(180deg,#ffe066,#ffb81a);color:#6a3f00;box-shadow:0 3px 0 #b97800}
+  .up.no{background:#eadcc4;color:#a4876a;box-shadow:0 3px 0 #c9ab84}
+  #vault{display:none;width:100%;margin-bottom:9px}
+  #vault.on{display:flex}
+  #astart{grid-area:go;width:100%;margin:0}
   .acol{background:linear-gradient(180deg,#fff6e6,#ffe3bd);border-radius:20px;padding:14px 14px 16px;
     box-shadow:0 8px 0 rgba(136,70,20,.45),0 16px 32px rgba(48,20,4,.35)}
   .ahd{font-size:17px;font-weight:800;letter-spacing:.14em;color:#a06a2a;margin-bottom:10px}
@@ -105,9 +140,15 @@
   /* phone: the record becomes one strip at the top so dishes + SETS + START all fit without a
      scroll - a START you have to scroll to find is a START you do not press. */
   @media (max-aspect-ratio:1/1){
-    #arm{grid-template-columns:1fr;grid-template-rows:auto auto auto;align-content:start;
-      padding:10px 10px 12px;gap:10px}
-    #arecord{order:-1;padding:11px 12px 13px}
+    #arm{grid-template-columns:1fr;grid-template-rows:none;align-content:start;
+      grid-template-areas:"rec" "house" "dish" "sets" "go";
+      padding:10px 10px 0;gap:10px}
+    #arecord{padding:11px 12px 13px}
+    #arecord .rows{display:flex;gap:9px}
+    #astart{position:sticky;bottom:0;width:100%;margin:0 0 10px}
+    .hc .hn{font-size:15px}
+    .hc .hd{font-size:12px;min-height:28px}
+    .buy{min-height:38px;font-size:18px}
     #arecord .ahd{margin-bottom:7px}
     #arecord .rows{display:flex;gap:9px}
     .srow{flex:1;flex-direction:column;align-items:center;gap:1px;margin:0}
@@ -125,7 +166,7 @@
     .suit .sn{font-size:17px}
     .suit .sd{font-size:13px;margin-top:1px}
     #asuits{gap:7px}
-    #astart{margin-top:8px;min-height:58px;font-size:27px}
+    #astart{min-height:58px;font-size:27px}
   }
 </style>
 </head>
@@ -154,15 +195,20 @@
   </div>
   <div id="armory">
     <div id="arm">
-      <div class="acol">
+      <div class="acol" id="ahouse">
+        <div class="ahd">THE HOUSE</div>
+        <button class="buy" id="vault"></button>
+        <div id="hcards"></div>
+      </div>
+      <div class="acol" id="adish">
         <div class="ahd">YOUR DISHES</div>
         <div class="tiles" id="atiles"></div>
       </div>
-      <div class="acol amid">
+      <div class="acol amid" id="asets">
         <div class="ahd">SETS</div>
         <div id="asuits"></div>
-        <button id="astart">START</button>
       </div>
+      <button id="astart">DEFEND</button>
       <div class="acol" id="arecord">
         <div class="ahd">RECORD</div>
         <div class="rows">
@@ -360,6 +406,34 @@ function rollLoot(round){
   else { how = "GOLD"; }
   saveGear();
   return { id: id, rank: gear[id], how: how, name: slotOf(id).name };
+}
+
+/* ---------- THE HOUSE (KDR's kingdom): four branches that spend the gold. ----------
+   None of them touches the hand, reach or throw (F1) and none kills on its own (F3): they decide
+   what is on the table, how long the cat holds and how rich a night is. A branch unlocks per
+   night played, so each loss screen leads to exactly one new glowing card. */
+var HOUSE_KEY = "tablecat.house";
+var house = (function(){
+  try { var o = JSON.parse(localStorage.getItem(HOUSE_KEY) || "null");
+        if (o && typeof o === "object") return o; } catch (x) {}
+  return {};
+})();
+["runs", "seen", "cup", "pig", "bed"].forEach(function(k){ house[k] = house[k] | 0; });
+function saveHouse(){ try { localStorage.setItem(HOUSE_KEY, JSON.stringify(house)); } catch (x) {} }
+var CUP_COST = [40, 80, 140, 220, 320];          /* buy a dish you have not found yet, COMMON */
+var POLISH_COST = [50, 120, 260, 520];           /* one rank up on one dish, by its current rank */
+var PIG_COST = [60, 150, 300, 600];              /* gold per mouse x1.25 / 1.5 / 1.75 / 2 */
+var PIG_RATE = [0, 30, 60, 90, 120];             /* offline gold per hour, capped at 8 hours */
+var BED_COST = [120, 350, 500];                  /* 4 lives, 5 lives, a second pot on the table */
+var BRANCHES = ["cup", "polish", "pig", "bed"];  /* unlock order: one per night played */
+function branchesOpen(){ return Math.min(BRANCHES.length, house.runs); }
+function branchOn(id){ return BRANCHES.indexOf(id) < branchesOpen(); }
+function maxHearts(){ return 3 + Math.min(2, house.bed); }
+function goldMul(){ return 1 + 0.25 * house.pig; }
+function vaultNow(){
+  if (!house.pig || !house.vaultT) return 0;
+  var h = Math.min(8, Math.max(0, (Date.now() - house.vaultT) / 3600000));
+  return Math.floor(h * PIG_RATE[house.pig]);
 }
 
 /* muc kiem "moc lot man" dung chung - tools/framecheck.js, tools/CAMERA-3D.md */
@@ -655,7 +729,11 @@ var elAgain = document.getElementById("again"), ui = document.getElementById("ui
 var elLoot = document.getElementById("loot"), elArm = document.getElementById("armory");
 var elTiles = document.getElementById("atiles"), elSuits = document.getElementById("asuits");
 var hpEls = [];
-for (var hi = 0; hi < 3; hi++) { var hel = document.createElement("div"); hel.className = "hp"; elHearts.appendChild(hel); hpEls.push(hel); }
+function buildHearts(n){
+  while (hpEls.length < n) { var hel = document.createElement("div"); hel.className = "hp"; elHearts.appendChild(hel); hpEls.push(hel); }
+  for (var hi = 0; hi < hpEls.length; hi++) { hpEls[hi].style.display = hi < n ? "" : "none"; hpEls[hi].className = "hp"; }
+}
+buildHearts(3);
 var popPool = [];
 function pop(x, z, txt, col){
   var e = null;
@@ -870,14 +948,14 @@ function startRound(){
   for (var j = 0; j < walkers.length; j++) walkers[j].m.visible = false;
   blocks = []; walkers = []; held = null;
   S = { phase: "play", round: r, score: 0, best: parseInt(localStorage.getItem("tablecat.best") || "0", 10) || 0,
-        hearts: 3, combo: 1, bestCombo: 1, hitClock: 9, elapsed: 0, pitted: 0, breaches: 0,
-        throws: 0, supplyT: 0, spawnT: 1.2, lost: 0 };
+        hearts: maxHearts(), combo: 1, bestCombo: 1, hitClock: 9, elapsed: 0, pitted: 0, breaches: 0,
+        throws: 0, supplyT: 0, spawnT: 1.2, lost: 0, gf: 0 };
   frames = 0;
   elOver.classList.remove("on");
   elArm.classList.remove("on");
   ui.classList.remove("arm");
   elScore.textContent = "0";
-  for (var h = 0; h < 3; h++) hpEls[h].className = "hp";
+  buildHearts(S.hearts);
   elHint.style.opacity = "1";
   arrow.visible = true;
   /* the ten second hit: a tight file of five already on the deck, and a stone slab sitting ready */
@@ -889,7 +967,8 @@ function startRound(){
   for (var k2 = 0; k2 < 5; k2++) walkers[k2].y = 0;
   var s0 = heapSlot(0);
   spawnBlock("slab", s0.x, s0.z, false);
-  for (var b2 = 1; b2 < 4; b2++) { var sl = heapSlot(b2); spawnBlock("crate", sl.x, sl.z, false); }
+  for (var b2 = 1; b2 < 4; b2++) { var sl = heapSlot(b2);
+    spawnBlock(b2 === 3 && house.bed >= 3 ? "slab" : "crate", sl.x, sl.z, false); }
   /* the banner now says what you just earned: the dish is already in the heap this round */
   if (lastLoot) {
     elBanner.textContent = lastLoot.how === "GOLD" ? "+18 GOLD"
@@ -908,6 +987,7 @@ function gameOver(why){
   localStorage.setItem("tablecat.round", String(Math.min(9, S.round + 1)));
   /* KDR: the loss screen KEEPS something. One dish per round, banked before the card is drawn. */
   lastLoot = rollLoot(S.round);
+  house.runs++; saveHouse();
   if (lastLoot.how === "GOLD") bankFlat(18);
   elLoot.textContent = lastLoot.how === "GOLD" ? "DUPLICATE SOLD  +18"
     : lastLoot.how + "  -  " + RANKS[lastLoot.rank].n + " " + lastLoot.name;
@@ -1057,7 +1137,8 @@ function pitWalker(w, mult){
   elScore.textContent = String(S.score);
   pop(w.x, w.z, "+" + gain, gain > 1 ? "#19e0c8" : "#fff");
   burst(w.x, 0.8, w.z, 0xb9bec7, 7, 5);
-  bankGold(w, gain);
+  S.gf += gain * goldMul(); var g = Math.floor(S.gf); S.gf -= g;
+  bankGold(w, Math.max(gain, g));
   tone(620 + Math.min(500, S.combo * 70), 0.1, "triangle", 0.13);
   if (S.hitClock < COMBO_WIN) { S.combo++; if (S.combo > S.bestCombo) S.bestCombo = S.combo; showCombo(S.combo); }
   S.hitClock = 0;
@@ -1361,12 +1442,15 @@ function renderArmory(){
       continue;
     }
     var k = itemK(sl.id, gear[sl.id]), R = RANKS[gear[sl.id]];
+    var up = "";
+    if (branchOn("polish")) up = gear[sl.id] >= 4 ? "" : '<button class="up' + (goldBank >= POLISH_COST[gear[sl.id]] ? "" : " no")
+      + '" data-buy="up:' + sl.id + '">▲ ' + coinTag(POLISH_COST[gear[sl.id]]) + '</button>';
     html += '<div class="tile" style="border-color:' + hexCss(R.col) + '">'
           + '<div class="tn">' + sl.name + '</div>'
           + '<div class="tl">WEIGHT</div>'
           + '<div class="tw">' + k.mass.toFixed(2) + '</div>'
           + '<div class="pill" style="background:' + hexCss(R.col) + '">' + R.n + '</div>'
-          + '</div>';
+          + up + '</div>';
   }
   elTiles.innerHTML = html;
   var suits = ["HEAVY", "BOOM", "STICK"], shtml = "";
@@ -1388,13 +1472,84 @@ function renderArmory(){
     if (!owns(s2.id)) continue;
     var w = SLOT_W[s2.id] || 1; tot += w; wsum += w * itemK(s2.id, gear[s2.id]).mass; }
   document.getElementById("sweight").textContent = (tot ? wsum / tot : 0).toFixed(2);
+  renderHouse();
 }
+function coinTag(n){ return '<span class="coin"></span>' + n; }
+function renderHouse(){
+  var open = branchesOpen(), html = "", fresh = open > house.seen ? BRANCHES[open - 1] : null;
+  var card = function(id, name, desc, lv, maxLv, cost){
+    var btn;
+    if (cost === null) btn = '<button class="buy max" disabled>' + (id === "polish" ? "TAP ▲ ON A DISH" : "MAX") + '</button>';
+    else btn = '<button class="buy' + (goldBank >= cost ? "" : " no") + '" data-buy="' + id + '">' + coinTag(cost) + '</button>';
+    var dots = "";
+    for (var d = 0; d < maxLv; d++) dots += '<i' + (d < lv ? ' class="on"' : '') + '></i>';
+    return '<div class="hc' + (id === fresh ? " new" : "") + '"><div class="hn">' + name + '</div>'
+         + (maxLv ? '<div class="lv">' + dots + '</div>' : '') + '<div class="hd">' + desc + '</div>' + btn + '</div>';
+  };
+  if (branchOn("cup")) {
+    var unowned = 0; for (var i = 0; i < SLOTS.length; i++) if (!owns(SLOTS[i].id)) unowned++;
+    html += card("cup", "CUPBOARD", unowned ? "A NEW DISH ON THE TABLE" : "EVERY DISH FOUND", 0, 0,
+                 unowned ? CUP_COST[Math.min(CUP_COST.length - 1, house.cup)] : null);
+  }
+  if (branchOn("polish")) html += card("polish", "POLISH", "BIGGER, HEAVIER DISH", 0, 0, null);
+  if (branchOn("pig")) {
+    var pd = house.pig < 4 ? "GOLD x" + goldMul().toFixed(2).replace(/0$/, "") + " → x" + (goldMul() + 0.25).toFixed(2).replace(/0$/, "")
+                           : "GOLD x2 + SAVES WHILE AWAY";
+    if (house.pig < 4 && house.pig > 0) pd += ", SAVES WHILE AWAY";
+    html += card("pig", "PIGGY BANK", pd, house.pig, 4, house.pig < 4 ? PIG_COST[house.pig] : null);
+  }
+  if (branchOn("bed")) {
+    var bd = ["4 CAT LIVES", "5 CAT LIVES", "START WITH 2 POTS", "5 LIVES + 2 POTS"][house.bed];
+    html += card("bed", "CAT BED", bd, house.bed, 3, house.bed < 3 ? BED_COST[house.bed] : null);
+  }
+  if (open < BRANCHES.length)
+    html += '<div class="hc tease"><div class="hn">???</div><div class="hd">OPENS AFTER NEXT NIGHT</div></div>';
+  document.getElementById("hcards").innerHTML = html;
+  var v = vaultNow(), elV = document.getElementById("vault");
+  elV.className = "buy" + (v > 0 ? " on" : "");
+  elV.innerHTML = "COLLECT " + coinTag(v);
+  if (fresh) { house.seen = open; saveHouse(); }
+}
+function spend(n){
+  if (goldBank < n) { tone(160, 0.12, "square", 0.08); return false; }
+  goldBank -= n; try { localStorage.setItem("tablecat.gold", String(goldBank)); } catch (x) {}
+  elGoldV.textContent = String(goldBank);
+  tone(880, 0.08, "triangle", 0.12); setTimeout(function(){ tone(1320, 0.12, "triangle", 0.12); }, 70);
+  return true;
+}
+function buy(id){
+  if (id === "cup") {
+    var un = []; for (var i = 0; i < SLOTS.length; i++) if (!owns(SLOTS[i].id)) un.push(SLOTS[i].id);
+    if (!un.length || !spend(CUP_COST[Math.min(CUP_COST.length - 1, house.cup)])) return;
+    gear[un[Math.floor(rnd() * un.length)]] = 0; saveGear(); house.cup++;
+  } else if (id === "pig") {
+    if (house.pig >= 4 || !spend(PIG_COST[house.pig])) return;
+    if (!house.pig) house.vaultT = Date.now();
+    house.pig++;
+  } else if (id === "bed") {
+    if (house.bed >= 3 || !spend(BED_COST[house.bed])) return;
+    house.bed++;
+  } else if (id.indexOf("up:") === 0) {
+    var sid = id.slice(3);
+    if (!owns(sid) || gear[sid] >= 4 || !spend(POLISH_COST[gear[sid]])) return;
+    gear[sid]++; saveGear();
+  } else if (id === "vault") {
+    var v = vaultNow(); if (!v) return;
+    goldBank += v; try { localStorage.setItem("tablecat.gold", String(goldBank)); } catch (x) {}
+    house.vaultT = Date.now(); tone(990, 0.14, "triangle", 0.13);
+  }
+  saveHouse(); renderArmory();
+}
+document.getElementById("arm").addEventListener("click", function(e){
+  var t = e.target.closest ? e.target.closest("[data-buy]") : null;
+  if (t) { e.stopPropagation(); buy(t.getAttribute("data-buy")); }
+});
+document.getElementById("vault").setAttribute("data-buy", "vault");
 function openArmory(){ renderArmory(); elOver.classList.remove("on"); elArm.classList.add("on"); ui.classList.add("arm"); }
 function closeArmory(){ elArm.classList.remove("on"); ui.classList.remove("arm"); }
 elAgain.addEventListener("click", function(e){ e.stopPropagation(); openArmory(); });
 document.getElementById("astart").addEventListener("click", function(e){
   e.stopPropagation(); closeArmory(); startRound(); });
-elOver.addEventListener("pointerdown", function(){ startRound(); });
 
 startRound();
 requestAnimationFrame(tick);
@@ -1507,7 +1662,10 @@ window.__toy = {
   itemInfo: function(id, rank){ var k = itemK(id, rank); return { mass:k.mass, r:k.r, suit:k.suit,
     plow:k.plow, push:k.push, boom:k.boom || 0, glue:k.glue || 0 }; },
   slots: SLOTS, ranks: RANKS,
-  restart: startRound
+  restart: startRound,
+  house: function(){ return JSON.parse(JSON.stringify(house)); },
+  setHouse: function(h){ house = h; ["runs", "seen", "cup", "pig", "bed"].forEach(function(k){ house[k] = house[k] | 0; }); saveHouse(); },
+  buy: buy
 };
 
 /* ---------- GD2 gates (metacheck.js) ---------------------------------------------------------
