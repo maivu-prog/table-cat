@@ -57,6 +57,19 @@
   #gold.bump{animation:bump .18s}
   @keyframes bump{50%{transform:translateX(-50%) scale(1.18)}}
   .coin{position:absolute;pointer-events:none;will-change:transform}
+  #wave{position:absolute;top:62px;left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:999px;
+    background:rgba(40,18,6,.45);color:#fff3dd;font-size:17px;font-weight:800;letter-spacing:.1em;white-space:nowrap}
+  #wave.boss{background:#c8322c;color:#fff}
+  #ui.arm #wave{display:none}
+  #over .why.win{color:#15985a}
+  .stg{display:flex;gap:7px;margin-top:10px}
+  .stg button{flex:1;min-height:44px;border-radius:12px;border:3px solid #e2c49a;background:#fffdf6;font-family:inherit;
+    font-size:13px;font-weight:800;color:#5e3410;line-height:1.05;cursor:pointer;padding:2px}
+  .stg button small{display:block;font-size:10px;letter-spacing:.06em;color:#a06a2a}
+  .stg button.cur{border-color:#19b9a4;background:#e6fbf7}
+  .stg button.done small{color:#15985a}
+  .stg button:disabled{background:repeating-linear-gradient(45deg,#f3e6d2,#f3e6d2 7px,#eadcc4 7px,#eadcc4 14px);
+    border-style:dashed;color:#a4876a;cursor:default}
   #over .stats{display:flex;gap:22px;margin:6px 0 4px}
   #over .stats span{display:flex;flex-direction:column;align-items:center;font-size:13px;font-weight:800;color:#9b7444;letter-spacing:.08em}
   #over .stats b{color:#8c4a12;font-size:26px;letter-spacing:0}
@@ -178,6 +191,7 @@
     <div id="hearts"></div>
   </div>
   <div id="gold"><div class="cn"></div><span id="goldv">0</span></div>
+  <div id="wave"></div>
   <div id="combo"></div>
   <div id="banner"></div>
   <div id="hint"><div class="txt">GRAB A DISH, SWING, LET GO</div></div>
@@ -186,7 +200,7 @@
     <div id="card">
       <div class="why" id="why"></div>
       <div class="sc" id="fsc">0</div>
-      <div class="stats"><span><b id="ftime">0:00</b>SURVIVED</span><span><b id="fmice">0</b>MICE DOWN</span><span><b id="fcombo">x1</b>BEST COMBO</span></div>
+      <div class="stats"><span><b id="ftime">0:00</b>SURVIVED</span><span><b id="fmice">0</b>MICE DOWN</span><span><b id="fwave">1/5</b>WAVE</span></div>
       <div class="kept"><div class="coin" style="position:static"></div><span id="fgold">+0</span>&nbsp;KEPT</div>
       <div class="loot" id="loot"></div>
       <div class="bst" id="fbst"></div>
@@ -217,6 +231,7 @@
           <div class="srow"><span>NIGHT</span><b id="sround">1</b></div>
           <div class="srow"><span>WEIGHT</span><b id="sweight">0</b></div>
         </div>
+        <div class="stg" id="stages"></div>
       </div>
     </div>
   </div>
@@ -408,6 +423,23 @@ function rollLoot(round){
   return { id: id, rank: gear[id], how: how, name: slotOf(id).name };
 }
 
+/* ---------- STAGES (KDR's halls): 5 waves, wave 5 is a boss. ----------
+   Losing keeps every coin and dish and restarts the stage from wave 1; beating the boss opens the
+   next stage. Each stage changes the table itself, never the hand (F1). */
+var STAGES = [
+  { n: "LONG TABLE",   sh: "TABLE", sink: false, boss: "FAT RAT" },
+  { n: "KITCHEN SINK", sh: "SINK",  sink: true,  boss: "SEWER RAT" },
+  { n: "PARTY TABLES", sh: "PARTY", soon: true },
+  { n: "LAZY SUSAN",   sh: "SUSAN", soon: true }
+];
+var WAVES = 5;
+/* mice per wave and seconds between them. Wave 1 counts the five already lined up (F5). */
+function waveCount(st, wv){ return 10 + 4 * wv + 5 * st; }
+function waveGap(st, wv){ return Math.max(0.7, 1.75 - 0.17 * wv - 0.22 * st); }
+var SK_HW = 1.9, SK_Z0 = -3.6, SK_Z1 = 0.2;      /* the sink: a hole in the counter */
+var BOSS_MASS = 2.3, BOSS_R = 1.45, BOSS_HURT = 2;
+function inSink(x, z){ return STAGES[S.stage].sink && Math.abs(x) < SK_HW && z > SK_Z0 && z < SK_Z1; }
+
 /* ---------- THE HOUSE (KDR's kingdom): four branches that spend the gold. ----------
    None of them touches the hand, reach or throw (F1) and none kills on its own (F3): they decide
    what is on the table, how long the cat holds and how rich a night is. A branch unlocks per
@@ -418,7 +450,7 @@ var house = (function(){
         if (o && typeof o === "object") return o; } catch (x) {}
   return {};
 })();
-["runs", "seen", "cup", "pig", "bed"].forEach(function(k){ house[k] = house[k] | 0; });
+["runs", "seen", "cup", "pig", "bed", "open", "pick"].forEach(function(k){ house[k] = house[k] | 0; });
 function saveHouse(){ try { localStorage.setItem(HOUSE_KEY, JSON.stringify(house)); } catch (x) {} }
 var CUP_COST = [40, 80, 140, 220, 320];          /* buy a dish you have not found yet, COMMON */
 var POLISH_COST = [50, 120, 260, 520];           /* one rank up on one dish, by its current rank */
@@ -510,6 +542,29 @@ var deck = new T.Mesh(new T.BoxGeometry(LANE_HW * 2, 0.9, DECK_Z1 - DECK_Z0),
 deck.position.set(0, -0.45, (DECK_Z0 + DECK_Z1) / 2);
 deck.receiveShadow = true;
 scene.add(deck);
+
+var deckWood = deck.material.map, deckTile = checkTex("#efece4", "#dcd6ca", 8);
+var sinkG = new T.Group();
+(function(){
+  var steel = new T.MeshStandardMaterial({ color: 0xb8c2cc, roughness: 0.35, metalness: 0.6 });
+  var water = new T.Mesh(new T.BoxGeometry(SK_HW * 2, 0.05, SK_Z1 - SK_Z0),
+    new T.MeshStandardMaterial({ color: 0x24506e, roughness: 0.15, metalness: 0.2 }));
+  water.position.set(0, 0.02, (SK_Z0 + SK_Z1) / 2); sinkG.add(water);
+  [[0, SK_Z0, SK_HW * 2 + 0.5, 0.25], [0, SK_Z1, SK_HW * 2 + 0.5, 0.25]].forEach(function(q){
+    var r = new T.Mesh(new T.BoxGeometry(q[2], 0.18, q[3]), steel); r.position.set(q[0], 0.09, q[1]); sinkG.add(r); });
+  [-1, 1].forEach(function(sx){
+    var r = new T.Mesh(new T.BoxGeometry(0.25, 0.18, SK_Z1 - SK_Z0), steel);
+    r.position.set(sx * (SK_HW + 0.12), 0.09, (SK_Z0 + SK_Z1) / 2); sinkG.add(r); });
+  var tap = new T.Mesh(new T.CylinderGeometry(0.16, 0.16, 1.4, 10), steel); tap.position.set(0, 0.7, SK_Z0 - 0.35); sinkG.add(tap);
+  var spout = new T.Mesh(new T.CylinderGeometry(0.12, 0.12, 0.9, 10), steel); spout.rotation.x = Math.PI / 2;
+  spout.position.set(0, 1.35, SK_Z0 + 0.05); sinkG.add(spout);
+})();
+sinkG.visible = false; scene.add(sinkG);
+function dressStage(st){
+  var sk = STAGES[st].sink;
+  deck.material.map = sk ? deckTile : deckWood; deck.material.needsUpdate = true;
+  sinkG.visible = sk;
+}
 
 /* the player side of the deck is its own colour: "this strip is mine" with no words */
 var mine = new T.Mesh(new T.BoxGeometry(LANE_HW * 2, 0.94, Z_PLAT - Z_BREACH),
@@ -722,6 +777,7 @@ function thud(vol){
 /* ---------- dom ---------- */
 var elScore = document.getElementById("score"), elHearts = document.getElementById("hearts");
 var elCombo = document.getElementById("combo"), elHint = document.getElementById("hint");
+var elWave = document.getElementById("wave");
 var elBanner = document.getElementById("banner"), elFlash = document.getElementById("flash");
 var elOver = document.getElementById("over"), elFsc = document.getElementById("fsc");
 var elFbst = document.getElementById("fbst"), elWhy = document.getElementById("why");
@@ -910,6 +966,11 @@ var handPrev = { x: 0, z: Z_PLAT - 1.4 };
 var blocks = [], walkers = [], held = null, S = {}, shake = 0, frames = 0;
 var lastLoot = null;
 var grabTick = 0;
+var bidSeq = 0;               /* b.bid + b.tch: who is this piece currently leaning on (see shove) */
+/* How much of the closing speed a shoved piece is handed, before the mass split. 1.15 puts two
+   equal pieces at 0.58 of it - inside the 0.55-0.70 chi Mai asked for, and the shover pays with
+   its own k.plow exactly as it does when it bowls over a mouse, so no new constant governs feel. */
+var SHOVE = 1.15;
 
 /* it is {id, rank}; a bare base-kind string still works and resolves to the owned tier, so the
    bot scripts and firstten.js keep driving the game exactly as before. */
@@ -918,15 +979,18 @@ function spawnBlock(it, x, z, fromSky){
   var k = itemK(it.id, it.rank);
   var b = { kind: it.id, slot: it.id, rank: k.rank, k: k, x: x, z: z, y: fromSky ? 9 : k.r,
             vx: 0, vz: 0, vy: 0, state: fromSky ? "fly" : "rest",
-            m: getBlockMesh(it.id, k.rank), rx: 0, ry: rr(0, 3), rz: 0, spin: 0, flung: false };
+            m: getBlockMesh(it.id, k.rank), rx: 0, ry: rr(0, 3), rz: 0, spin: 0, flung: false,
+            bid: ++bidSeq, tch: {} };
   blocks.push(b);
   return b;
 }
-function spawnWalker(x, z){
+function spawnWalker(x, z, boss){
   var w = { x: x, z: z === undefined ? Z_SPAWN : z, y: -1.5, vx: 0, vz: 0, vy: 0,
             fly: false, climb: 0.45, dead: 0, tilt: 0, spin: 0, phase: rr(0, 6.28),
-            glue: 0, m: getWalker() };
-  if (w.m.__mt) w.m.__mt.color.setHex(0x9aa0aa);
+            glue: 0, m: getWalker(), boss: !!boss, r: boss ? BOSS_R : WALK_R, mass: boss ? BOSS_MASS : WALK_MASS };
+  w.base = boss ? 0x5d5a66 : 0x9aa0aa;
+  w.m.scale.setScalar(boss ? BOSS_R / WALK_R : 1);
+  if (w.m.__mt) w.m.__mt.color.setHex(w.base);
   walkers.push(w);
   return w;
 }
@@ -949,7 +1013,9 @@ function startRound(){
   blocks = []; walkers = []; held = null;
   S = { phase: "play", round: r, score: 0, best: parseInt(localStorage.getItem("tablecat.best") || "0", 10) || 0,
         hearts: maxHearts(), combo: 1, bestCombo: 1, hitClock: 9, elapsed: 0, pitted: 0, breaches: 0,
-        throws: 0, supplyT: 0, spawnT: 1.2, lost: 0, gf: 0 };
+        throws: 0, supplyT: 0, spawnT: 1.2, lost: 0, gf: 0, shoves: 0, chainHits: 0,
+        stage: Math.min(house.pick, house.open), wave: 0, spawned: 5, waveT: 0, breath: 0, bossLeft: 0, won: false };
+  dressStage(S.stage);
   frames = 0;
   elOver.classList.remove("on");
   elArm.classList.remove("on");
@@ -962,9 +1028,11 @@ function startRound(){
   /* single file, nose to tail, straight up the throwing line: one slab ploughs the whole queue
      and dominoes the rest off the far lip. Spread across the lane instead (first version), the
      same throw only ever took one of them down and the opening read as "nothing happened". */
-  for (var c = 0; c < 5; c++) spawnWalker(-0.45 + (c % 2) * 0.9, -3.4 - c * 1.15);
+  var z0 = STAGES[S.stage].sink ? SK_Z0 - 1.9 : -3.4;   /* behind the sink, never in it */
+  for (var c = 0; c < 5; c++) spawnWalker(-0.45 + (c % 2) * 0.9, z0 - c * 1.15);
   for (var k = 0; k < 5; k++) walkers[k].climb = 0;
   for (var k2 = 0; k2 < 5; k2++) walkers[k2].y = 0;
+  setWaveTag();
   var s0 = heapSlot(0);
   spawnBlock("slab", s0.x, s0.z, false);
   for (var b2 = 1; b2 < 4; b2++) { var sl = heapSlot(b2);
@@ -982,11 +1050,12 @@ function startRound(){
 }
 
 function gameOver(why){
+  if (S.phase === "over") return;
   S.phase = "over";
   if (S.score > S.best) { S.best = S.score; localStorage.setItem("tablecat.best", String(S.score)); }
   localStorage.setItem("tablecat.round", String(Math.min(9, S.round + 1)));
   /* KDR: the loss screen KEEPS something. One dish per round, banked before the card is drawn. */
-  lastLoot = rollLoot(S.round);
+  lastLoot = rollLoot(S.round + (S.won ? 2 : 0));
   house.runs++; saveHouse();
   if (lastLoot.how === "GOLD") bankFlat(18);
   elLoot.textContent = lastLoot.how === "GOLD" ? "DUPLICATE SOLD  +18"
@@ -995,11 +1064,12 @@ function gameOver(why){
     + hexCss(RANKS[lastLoot.rank].col) + "22)";
   elLoot.style.borderColor = hexCss(RANKS[lastLoot.rank].col);
   elWhy.textContent = why;
+  elWhy.className = "why" + (S.won ? " win" : "");
+  document.getElementById("fwave").textContent = S.won ? "ALL" : (S.wave + 1) + "/" + WAVES;
   elFsc.textContent = String(S.score);
   var sec = Math.floor(S.elapsed);
   document.getElementById("ftime").textContent = Math.floor(sec / 60) + ":" + ("0" + sec % 60).slice(-2);
   document.getElementById("fmice").textContent = String(S.pitted);
-  document.getElementById("fcombo").textContent = "x" + S.bestCombo;
   document.getElementById("fgold").textContent = "+" + (S.gold || 0);
   elFbst.textContent = "BEST " + S.best;
   elHint.style.opacity = "0";   /* the coaching line must not read through the loss card */
@@ -1044,6 +1114,7 @@ function release(){
   var sp = Math.hypot(b.vx, b.vz);
   b.state = "fly";
   b.flung = true;
+  b.shoved = false;
   b.vx *= THROW_K; b.vz *= THROW_K;
   b.vy = Math.max(HOP_MIN, Math.min(HOP_MAX, sp * HOP));
   b.spin = (b.vz > 0 ? -1 : 1) * Math.min(14, 2 + sp * 0.3);
@@ -1133,6 +1204,7 @@ function pitWalker(w, mult){
   w.dead = 1;
   S.pitted++;
   var gain = Math.max(1, S.combo);
+  if (w.boss) { gain += 20; S.bossLeft = 0; say("BOSS DOWN!", 1400); shake = Math.max(shake, 0.9); }
   S.score += gain;
   elScore.textContent = String(S.score);
   pop(w.x, w.z, "+" + gain, gain > 1 ? "#19e0c8" : "#fff");
@@ -1163,8 +1235,22 @@ function boom(b){
   b.dead = 1; b.m.visible = false;
 }
 
+/* the heap's total kinetic energy. Left alone it must fall to ~0; if a shove pumps energy it
+   climbs, and pilecheck.js fails. */
+function pileKE(){
+  var e = 0;
+  for (var i = 0; i < blocks.length; i++) {
+    var b = blocks[i];
+    if (b.dead || b.state === "held" || b.state === "falling") continue;
+    e += 0.5 * b.k.mass * (b.vx * b.vx + b.vz * b.vz);
+  }
+  return Math.round(e * 1000) / 1000;
+}
 function hitWalker(b, w, nx, nz, vn){
-  var imp = vn * b.k.push * (b.k.mass / (b.k.mass + WALK_MASS)) * KNOCK;
+  /* a mouse bowled over by a piece the finger never threw this round - the chain the shove bought */
+  if (b.shoved) S.chainHits = (S.chainHits || 0) + 1;
+  var imp = vn * b.k.push * (b.k.mass / (b.k.mass + w.mass)) * KNOCK;
+  if (w.boss) imp *= 0.8;
   w.vx += nx * imp; w.vz += nz * imp;
   w.vy = Math.max(w.vy, 2.2 + imp * 0.09);
   w.fly = true;
@@ -1221,7 +1307,7 @@ function step(dt){
     }
     if (b.state !== "rest") { b.x += b.vx * dt; b.z += b.vz * dt; }
     /* off the deck in any direction and it is gone - wild flings cost you your ammo */
-    if (Math.abs(b.x) > LANE_HW + 0.1 || b.z < Z_EDGE || b.z > Z_PLAT + 0.8) {
+    if (Math.abs(b.x) > LANE_HW + 0.1 || b.z < Z_EDGE || b.z > Z_PLAT + 0.8 || (b.y < 0.6 && inSink(b.x, b.z))) {
       b.state = "falling"; b.vy = Math.min(b.vy, 0); continue;
     }
     /* only MOVING scrap hits anything; a piece at rest is harmless ammo on the deck */
@@ -1230,7 +1316,7 @@ function step(dt){
       for (var j = 0; j < walkers.length; j++) {
         var w = walkers[j];
         if (w.dead || w.climb > 0) continue;
-        var dx = w.x - b.x, dz = w.z - b.z, rsum = b.k.r + WALK_R;
+        var dx = w.x - b.x, dz = w.z - b.z, rsum = b.k.r + w.r;
         var d2 = dx * dx + dz * dz;
         if (d2 < rsum * rsum) {
           var d = Math.sqrt(d2) || 0.001, nx = dx / d, nz = dz / d;
@@ -1242,7 +1328,7 @@ function step(dt){
   }
 
   /* walkers */
-  var wspeed = Math.min(2.8, 1.50 + S.round * 0.07 + S.elapsed * 0.013);
+  var wspeed = Math.min(2.8, 1.50 + S.wave * 0.13 + S.stage * 0.3 + S.waveT * 0.006);
   for (var n = walkers.length - 1; n >= 0; n--) {
     var a = walkers[n];
     if (a.dead) {
@@ -1270,11 +1356,12 @@ function step(dt){
           var c2 = walkers[q];
           if (c2 === a || c2.dead || c2.fly || c2.climb > 0) continue;
           var ddx = c2.x - a.x, ddz = c2.z - a.z, dd2 = ddx * ddx + ddz * ddz;
-          if (dd2 < (WALK_R * 2) * (WALK_R * 2)) {
+          if (dd2 < (a.r + c2.r) * (a.r + c2.r)) {
             var dd = Math.sqrt(dd2) || 0.001;
             var vnn = a.vx * (ddx / dd) + a.vz * (ddz / dd);
             if (vnn > 1) {
-              c2.vx += (ddx / dd) * vnn * 0.82; c2.vz += (ddz / dd) * vnn * 0.82;
+              var dk = c2.boss ? 0.25 : 0.82;
+              c2.vx += (ddx / dd) * vnn * dk; c2.vz += (ddz / dd) * vnn * dk;
               c2.vy = 2.0; c2.fly = true; c2.spin = (Math.random() - 0.5) * 16;
               a.vx *= 0.55; a.vz *= 0.55;
               burst(c2.x, 1.0, c2.z, 0xff9bb6, 4, 3);
@@ -1287,17 +1374,62 @@ function step(dt){
         a.glue -= dt;
         a.z += wspeed * 0.42 * dt;        /* jam on the paws: it crawls instead of trotting */
         a.phase += dt * 4;
-        if (a.glue <= 0 && a.m.__mt) a.m.__mt.color.setHex(0x9aa0aa);
+        if (a.glue <= 0 && a.m.__mt) a.m.__mt.color.setHex(a.base);
       } else {
-        a.z += wspeed * dt;
-        a.phase += dt * 9;
+        var sp = a.boss ? wspeed * 0.55 : wspeed;
+        /* the sink: mice walk round it, so it only ever takes one that a throw knocked in (F3) */
+        if (STAGES[S.stage].sink && a.z > SK_Z0 - 1.6 && a.z < SK_Z1 + 0.4 && Math.abs(a.x) < SK_HW + a.r + 0.15) {
+          a.x += (a.x < 0 ? -1 : 1) * sp * 1.1 * dt;
+        } else a.z += sp * dt;
+        a.phase += dt * (a.boss ? 5 : 9);
       }
     }
+    if (inSink(a.x, a.z) && !a.climb) { pitWalker(a); a.vx *= 0.2; a.vz *= 0.2; a.vy = Math.min(a.vy, 0); continue; }
     if (Math.abs(a.x) > LANE_HW || a.z < Z_EDGE) { pitWalker(a); a.vy = Math.min(a.vy, 0); continue; }
     if (a.z > Z_BREACH) {
       a.m.visible = false; walkers.splice(n, 1);
+      if (a.boss) { S.bossLeft = 0; for (var bh = 1; bh < BOSS_HURT && S.hearts > 1; bh++) hurt(); }
       hurt();
       continue;
+    }
+  }
+
+  /* A THROWN PIECE STILL ON THE DECK KEEPS ITS COLLIDER (chi Mai, 06/11): a moving piece hands
+     its momentum to one lying there, which then SKIDS - and a skidding piece already bowls over
+     mice, already slides off the edge and is lost, so one throw into the dish heap shoves the
+     whole cluster without a single new rule anywhere else.
+     The pair lock (b.tch) is the whole trick: without it two overlapping pieces trade an impulse
+     every frame, pump energy out of nothing, and the heap detonates. One contact, one transfer,
+     until they come apart. */
+  for (var pa = 0; pa < blocks.length; pa++) {
+    var P = blocks[pa];
+    if (P.dead || P.state === "held" || P.state === "falling") continue;
+    for (var pb = pa + 1; pb < blocks.length; pb++) {
+      var Q = blocks[pb];
+      if (Q.dead || Q.state === "held" || Q.state === "falling") continue;
+      var pdx = Q.x - P.x, pdz = Q.z - P.z, prs = P.k.r + Q.k.r;
+      var pd2 = pdx * pdx + pdz * pdz;
+      var apart = pd2 >= prs * prs || Math.abs(P.y - Q.y) > prs * 0.9;
+      if (apart) { delete P.tch[Q.bid]; delete Q.tch[P.bid]; continue; }
+      if (P.tch[Q.bid]) continue;                  /* same contact, already paid */
+      P.tch[Q.bid] = 1; Q.tch[P.bid] = 1;
+      var pd = Math.sqrt(pd2) || 0.001, pnx = pdx / pd, pnz = pdz / pd;
+      var relv = (P.vx - Q.vx) * pnx + (P.vz - Q.vz) * pnz;   /* closing speed along the normal */
+      if (relv <= MOVING) continue;                /* a heap merely settling must not shove */
+      var A2 = (P.vx * pnx + P.vz * pnz) >= (Q.vx * pnx + Q.vz * pnz) ? P : Q;
+      var B2 = A2 === P ? Q : P;
+      var sgn = A2 === P ? 1 : -1;
+      var imp = relv * (A2.k.mass / (A2.k.mass + B2.k.mass)) * SHOVE;
+      B2.vx += pnx * imp * sgn; B2.vz += pnz * imp * sgn;
+      B2.vy = Math.max(B2.vy, 0);
+      if (B2.state === "rest") B2.state = "skid";
+      B2.shoved = true;
+      if (A2.flung) B2.flung = true;               /* lost off the edge: still the player's throw */
+      A2.vx *= A2.k.plow; A2.vz *= A2.k.plow;
+      burst((P.x + Q.x) / 2, 0.5, (P.z + Q.z) / 2, 0xd9ad7c, 4, 3);
+      thud(0.08 + Math.min(0.16, relv * 0.004));
+      shake = Math.max(shake, Math.min(0.32, 0.07 + relv * 0.004));
+      S.shoves = (S.shoves || 0) + 1;
     }
   }
 
@@ -1332,13 +1464,54 @@ function step(dt){
     spawnBlock(pickItem(), sl2.x, sl2.z, true);
   }
 
-  /* walkers keep coming, a bit faster each time */
-  S.spawnT -= dt;
-  if (S.spawnT <= 0) {
-    S.spawnT = Math.max(0.62, 2.2 - S.elapsed * 0.032);
-    spawnWalker(rr(-LANE_HW + 1.2, LANE_HW - 1.2));
-    if (S.elapsed > 20 && rnd() < 0.45) spawnWalker(rr(-LANE_HW + 1.2, LANE_HW - 1.2));
+  /* waves: a fixed count per wave, a short breather between, the boss leads wave 5 */
+  if (S.phase !== "play") return;
+  S.waveT += dt;
+  if (S.breath > 0) {
+    S.breath -= dt;
+    if (S.breath <= 0) startWave(S.wave + 1);
+    return;
   }
+  var need = waveCount(S.stage, S.wave);
+  S.spawnT -= dt;
+  if (S.spawned < need && S.spawnT <= 0) {
+    S.spawnT = waveGap(S.stage, S.wave);
+    spawnWalker(rr(-LANE_HW + 1.2, LANE_HW - 1.2)); S.spawned++;
+    if (S.wave >= 2 && S.spawned < need && rnd() < 0.35) { spawnWalker(rr(-LANE_HW + 1.2, LANE_HW - 1.2)); S.spawned++; }
+  }
+  var alive = 0; for (var al = 0; al < walkers.length; al++) if (!walkers[al].dead) alive++;
+  if (S.spawned >= need && !alive) {
+    if (S.wave >= WAVES - 1) stageClear();
+    else { S.breath = 2.2; bankFlat(5 * (S.wave + 1) * (S.stage + 1));
+           say("WAVE " + (S.wave + 1) + " CLEAR  +" + 5 * (S.wave + 1) * (S.stage + 1), 1600); }
+  }
+}
+function say(t, ms){
+  elBanner.textContent = t; elBanner.style.opacity = "1";
+  clearTimeout(say._t); say._t = setTimeout(function(){ elBanner.style.opacity = "0"; }, ms || 1500);
+}
+function setWaveTag(){
+  var boss = S.wave === WAVES - 1;
+  elWave.textContent = STAGES[S.stage].sh + "  ·  " + (boss ? "BOSS" : "WAVE " + (S.wave + 1) + "/" + WAVES);
+  elWave.className = boss ? "boss" : "";
+}
+function startWave(wv){
+  S.wave = wv; S.spawned = 0; S.spawnT = 0.6; S.waveT = 0;
+  setWaveTag();
+  if (wv === WAVES - 1) {
+    spawnWalker(0, Z_SPAWN, true); S.bossLeft = 1;
+    say(STAGES[S.stage].boss + "!  THROW SOMETHING HEAVY", 2200);
+    tone(140, 0.5, "sawtooth", 0.16);
+  } else if (wv) say("WAVE " + (wv + 1), 1200);
+}
+function stageClear(){
+  S.won = true;
+  var reward = 60 * (S.stage + 1);
+  bankFlat(reward);
+  if (S.stage + 1 < STAGES.length && !STAGES[S.stage + 1].soon) { house.open = Math.max(house.open, S.stage + 1); house.pick = S.stage + 1; }
+  house.cleared = Math.max(house.cleared | 0, S.stage + 1);
+  saveHouse();
+  gameOver("STAGE CLEARED!  +" + reward);
 }
 
 /* ---------- draw ---------- */
@@ -1473,6 +1646,14 @@ function renderArmory(){
     var w = SLOT_W[s2.id] || 1; tot += w; wsum += w * itemK(s2.id, gear[s2.id]).mass; }
   document.getElementById("sweight").textContent = (tot ? wsum / tot : 0).toFixed(2);
   renderHouse();
+  var sh = "";
+  for (var si2 = 0; si2 < STAGES.length; si2++) {
+    var stg = STAGES[si2], ok = !stg.soon && si2 <= house.open, cur = si2 === Math.min(house.pick, house.open);
+    var sub = stg.soon ? "SOON" : !ok ? "LOCKED" : si2 < (house.cleared | 0) ? "CLEARED" : "BOSS: " + stg.boss.split(" ")[0];
+    sh += '<button data-stage="' + si2 + '"' + (ok ? "" : " disabled") + ' class="' + (cur ? "cur" : "")
+        + (si2 < (house.cleared | 0) ? " done" : "") + '">' + (si2 + 1) + ". " + stg.sh + "<small>" + sub + "</small></button>";
+  }
+  document.getElementById("stages").innerHTML = sh;
 }
 function coinTag(n){ return '<span class="coin"></span>' + n; }
 function renderHouse(){
@@ -1541,6 +1722,8 @@ function buy(id){
   saveHouse(); renderArmory();
 }
 document.getElementById("arm").addEventListener("click", function(e){
+  var sg = e.target.closest ? e.target.closest("[data-stage]") : null;
+  if (sg && !sg.disabled) { e.stopPropagation(); house.pick = +sg.getAttribute("data-stage"); saveHouse(); renderArmory(); return; }
   var t = e.target.closest ? e.target.closest("[data-buy]") : null;
   if (t) { e.stopPropagation(); buy(t.getAttribute("data-buy")); }
 });
@@ -1565,6 +1748,7 @@ window.__toy = {
     return { phase: S.phase, score: S.score, hearts: S.hearts, combo: S.combo, bestCombo: S.bestCombo,
              elapsed: S.elapsed, round: S.round, pitted: S.pitted, breaches: S.breaches,
              throws: S.throws, lost: S.lost, walkers: walkers.length, blocks: live, ready: rest,
+             shoves: S.shoves || 0, chainHits: S.chainHits || 0, pileKE: pileKE(),
              frames: frames, steps: stepN, guard: guardHits, held: held ? held.kind : null };
   },
   walkerList: function(){
@@ -1665,7 +1849,11 @@ window.__toy = {
   restart: startRound,
   house: function(){ return JSON.parse(JSON.stringify(house)); },
   setHouse: function(h){ house = h; ["runs", "seen", "cup", "pig", "bed"].forEach(function(k){ house[k] = house[k] | 0; }); saveHouse(); },
-  buy: buy
+  buy: buy,
+  stage: function(){ return { stage: S.stage, wave: S.wave, spawned: S.spawned, won: S.won, open: house.open, cleared: house.cleared | 0 }; },
+  setStage: function(st){ house.open = Math.max(house.open, st); house.pick = st; saveHouse(); startRound(); },
+  skipToWave: function(wv){ for (var i = 0; i < walkers.length; i++) walkers[i].m.visible = false; walkers = []; startWave(wv); },
+  inSink: function(x, z){ return inSink(x, z); }
 };
 
 /* ---------- GD2 gates (metacheck.js) ---------------------------------------------------------

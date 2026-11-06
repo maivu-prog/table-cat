@@ -1,5 +1,5 @@
 # table-cat
 
-Table Cat: fling dishes at mice; gold builds the house between nights
+Table Cat: fling dishes at mice; stages, waves and bosses
 
 Play: https://maivu-prog.github.io/table-cat/
